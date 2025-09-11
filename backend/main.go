@@ -15,15 +15,15 @@ func main() {
 
 	// Create multiple robots using slice
 	robots := []models.Robot{
-		{ID: 1, X: 0, Y: 0, Status: "idle"},
-		{ID: 2, X: 1, Y: 1, Status: "idle"},
-		{ID: 3, X: 2, Y: 2, Status: "idle"},
+		{ID: 1, X: 0, Y: 0, Z: 0, Status: "idle"},
+		{ID: 2, X: 1, Y: 1, Z: 0, Status: "idle"},
+		{ID: 3, X: 2, Y: 2, Z: 0, Status: "idle"},
 	}
 
 	// Create some orders
 	orders := []models.Order{
-		{ID: 1, ItemX: 4, ItemY: 2, DeliveryX: 0, DeliveryY: 0, Status: "pending", AssignedRobot: 0},
-		{ID: 2, ItemX: 3, ItemY: 5, DeliveryX: 1, DeliveryY: 1, Status: "pending", AssignedRobot: 0},
+		{ID: 1, ItemX: 4, ItemY: 2, Status: "pending", AssignedRobot: 0},
+		{ID: 2, ItemX: 3, ItemY: 5, Status: "pending", AssignedRobot: 0},
 	}
 
 	// Create workstations (ports)
@@ -67,7 +67,8 @@ func main() {
 
 	// Execute the orders
 	fmt.Println("\nExecuting orders:")
-	services.ExecuteOrders(robots, orders)
+	warehouse := models.GetDefaultWarehouse()
+	services.ExecuteOrders(robots, orders, warehouse)
 
 	fmt.Println("\nRobots after moving to pickup:")
 	for _, robot := range robots {

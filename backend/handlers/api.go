@@ -51,15 +51,13 @@ func GetWarehouseData() ([]models.Robot, []models.Order, []models.Workstation) {
 }
 
 func ProcessWarehouseOrders() {
-	services.ProcessPendingOrders(warehouse.Robots, warehouse.Orders)
+	services.ProcessPendingOrders(warehouse.Robots, warehouse.Orders, warehouse.Workstations)
 }
 
 // CreateOrderRequest represents the JSON structure for creating orders
 type CreateOrderRequest struct {
-	ItemX     int `json:"item_x" binding:"required"`
-	ItemY     int `json:"item_y" binding:"required"`
-	DeliveryX int `json:"delivery_x" binding:"required"`
-	DeliveryY int `json:"delivery_y" binding:"required"`
+	ItemX int `json:"item_x" binding:"required"`
+	ItemY int `json:"item_y" binding:"required"`
 }
 
 // CreateOrder creates a new order
@@ -78,8 +76,6 @@ func CreateOrder(c *gin.Context) {
 		ID:            newID,
 		ItemX:         req.ItemX,
 		ItemY:         req.ItemY,
-		DeliveryX:     req.DeliveryX,
-		DeliveryY:     req.DeliveryY,
 		Status:        "pending",
 		AssignedRobot: 0,
 	}
