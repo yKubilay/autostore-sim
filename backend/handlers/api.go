@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// WahouseData holds all warehouse state data
+// WarehouseData holds all warehouse state data
 type WarehouseData struct {
 	Robots       []models.Robot       `json:"robots"`
 	Orders       []models.Order       `json:"orders"`
@@ -42,4 +42,43 @@ func GetWorkstations(c *gin.Context) {
 // GetWarehouseStatus returns complete warehouse state
 func GetWarehouseStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, warehouse)
+}
+
+// CreateOrderRequest represents the JSON structure for creating orders
+type CreateOrderRequest struct {
+	ItemX     int `json:"item_x" binding:"required"`
+	ItemY     int `json:"item_y" binding:"required"`
+	DeliveryX int `json:"delivery_x" binding:"required"`
+	DeliveryY int `json:"delivery_y" binding:"required"`
+}
+
+// CreateOrder creates a new order
+func CreateOrder(c *gin.Context) {
+	var req CreateOrderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Generate new order ID
+	newID := len(warehouse.Orders) + 1
+
+	// Create new order
+	newOrder := models.Order{
+		ID:            newID,
+		ItemX:         req.ItemX,
+		ItemY:         req.ItemY,
+		DeliveryX:     req.DeliveryX,
+		DeliveryY:     req.DeliveryY,
+		Status:        "pending",
+		AssignedRobot: 0,
+	}
+
+	// Add to warehouse
+	warehouse.Orders = append(warehouse.Orders, newOrder)
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Order created successfully",
+		"order":   newOrder,
+	})
 }

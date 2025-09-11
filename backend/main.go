@@ -95,6 +95,9 @@ func startWebServer() {
 		api.GET("/orders", handlers.GetOrders)
 		api.GET("/workstations", handlers.GetWorkstations)
 		api.GET("/status", handlers.GetWarehouseStatus)
+
+		// POST endpoint to create orders
+		api.POST("/orders", handlers.CreateOrder)
 	}
 
 	fmt.Println("Web server starting on :8080")
