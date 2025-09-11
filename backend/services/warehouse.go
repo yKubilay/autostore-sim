@@ -41,3 +41,19 @@ func ExecuteOrders(robots []models.Robot, orders []models.Order) {
 		}
 	}
 }
+
+// ProcessPendringorders automatically assigns and executes pending orders
+func ProcessPendingOrders(robots []models.Robot, orders []models.Order) {
+	//Find pending orders
+	for i, order := range orders {
+		if order.Status == "pending" {
+			// Try to assign this order
+			AssignOrder(robots, orders, i)
+
+			// If it was assigned, execute it
+			if orders[i].Status == "assigned" {
+				ExecuteOrders(robots, orders)
+			}
+		}
+	}
+}

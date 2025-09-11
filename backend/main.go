@@ -5,6 +5,7 @@ import (
 	"autostore-sim/backend/services"
 	"autostore-sim/models"
 	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -81,8 +82,22 @@ func main() {
 	fmt.Println("Warehouse is running!")
 	fmt.Println("API available at http://localhost:8080")
 
+	// Start automatic order processor in a separate goroutine
+	go startOrderProcessor()
+
 	// Keep main running
 	select {}
+}
+
+// startOrderProcessor runs in a goroutine and processes pending orders periodically
+func startOrderProcessor() {
+	ticker := time.NewTicker(3 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// Process orders directly on warehouse data
+		handlers.ProcessWarehouseOrders()
+	}
 }
 
 func startWebServer() {
@@ -99,7 +114,6 @@ func startWebServer() {
 		// POST endpoint to create orders
 		api.POST("/orders", handlers.CreateOrder)
 	}
-
 	fmt.Println("Web server starting on :8080")
 	r.Run(":8080")
 }

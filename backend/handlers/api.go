@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"autostore-sim/backend/services"
 	"autostore-sim/models"
 	"net/http"
 
@@ -42,6 +43,15 @@ func GetWorkstations(c *gin.Context) {
 // GetWarehouseStatus returns complete warehouse state
 func GetWarehouseStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, warehouse)
+}
+
+// GetWarehouseData returns current warehouse state for processing
+func GetWarehouseData() ([]models.Robot, []models.Order, []models.Workstation) {
+	return warehouse.Robots, warehouse.Orders, warehouse.Workstations
+}
+
+func ProcessWarehouseOrders() {
+	services.ProcessPendingOrders(warehouse.Robots, warehouse.Orders)
 }
 
 // CreateOrderRequest represents the JSON structure for creating orders
