@@ -2,8 +2,8 @@ package main
 
 import (
 	"autostore-sim/backend/handlers"
+	"autostore-sim/backend/models"
 	"autostore-sim/backend/services"
-	"autostore-sim/models"
 	"fmt"
 	"time"
 

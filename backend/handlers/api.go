@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"autostore-sim/backend/models"
 	"autostore-sim/backend/services"
-	"autostore-sim/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

@@ -1,7 +1,7 @@
 package services
 
 import (
-	"autostore-sim/models"
+	"autostore-sim/backend/models"
 	"fmt"
 )
 
