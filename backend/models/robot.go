@@ -64,7 +64,7 @@ func (r *Robot) MoveToWithBounds(newX, newY, newZ int, warehouse Warehouse) bool
 }
 
 // StartRobot to launch the robot as gouroutine with channels for communication
-func (r *Robot) StartRobot(warehouse *Warehouse, done chan bool) {
+func (r *Robot) StartRobot(sw *SafeWarehouse, done chan bool) {
 	// Initialize channels
 	r.Commands = make(chan RobotCommand, 10)
 	r.Updates = make(chan RobotUpdate, 10)
@@ -80,7 +80,7 @@ func (r *Robot) StartRobot(warehouse *Warehouse, done chan bool) {
 				fmt.Printf("Robot %d received command: %s to (%d, %d, %d)\n",
 					r.ID, cmd.Type, cmd.X, cmd.Y, cmd.Z)
 
-				r.processCommand(cmd, warehouse)
+				r.processCommand(cmd, sw)
 
 			case <-done:
 				fmt.Printf("Robot %d shutting down\n", r.ID)
@@ -91,23 +91,15 @@ func (r *Robot) StartRobot(warehouse *Warehouse, done chan bool) {
 }
 
 // processCommand handles actual command execution for robots
-func (r *Robot) processCommand(cmd RobotCommand, warehouse *Warehouse) {
+func (r *Robot) processCommand(cmd RobotCommand, sw *SafeWarehouse) {
 	switch cmd.Type {
 	case "move":
-
-		// Use existing bounds checking method for robots
-		if r.MoveToWithBounds(cmd.X, cmd.Y, cmd.Z, *warehouse) {
+		// Use SafeWarehouse's thread-safe movement
+		if sw.TryMoveRobot(r.X, r.Y, r.Z, cmd.X, cmd.Y, cmd.Z) {
+			r.X = cmd.X
+			r.Y = cmd.Y
+			r.Z = cmd.Z
 			r.Status = "idle"
-
-			// Sending updates back
-			r.Updates <- RobotUpdate{
-				RobotID: r.ID,
-				X:       r.X,
-				Y:       r.Y,
-				Z:       r.Z,
-				Status:  r.Status,
-				OrderID: cmd.OrderID,
-			}
 		} else {
 			r.Status = "error"
 			fmt.Printf("Robot %d: Move failed\n", r.ID)
