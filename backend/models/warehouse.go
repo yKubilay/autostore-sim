@@ -41,7 +41,7 @@ func NewSafeWarehouse(width, height, levels int) *SafeWarehouse {
 
 // GetDefaultSafeWarehouse returns a standard 5x5x3 thread-safe warehouse
 func GetDefaultSafeWarehouse() *SafeWarehouse {
-	return NewSafeWarehouse(5, 5, 3)
+	return NewSafeWarehouse(8, 8, 5)
 }
 
 // IsValidPosition checks if coordinates are within warehouse bounds

@@ -1,0 +1,92 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Air Filter Honda Civic",
+      "sku": "AF-HC-2020",
+      "category": "engine",
+      "brand": "Bosch",
+      "vehicle_year": 2020,
+      "vehicle_make": "Honda",
+      "price": 24.99,
+      "weight_kg": 0.3
+    },
+    {
+      "id": 2,
+      "name": "Air Filter Toyota Camry",
+      "sku": "AF-TC-2019",
+      "category": "engine",
+      "brand": "K&N",
+      "vehicle_year": 2019,
+      "vehicle_make": "Toyota",
+      "price": 32.50,
+      "weight_kg": 0.4
+    },
+    {
+      "id": 3,
+      "name": "Spark Plug Set Ford F-150",
+      "sku": "SP-FF-2021",
+      "category": "engine",
+      "brand": "NGK",
+      "vehicle_year": 2021,
+      "vehicle_make": "Ford",
+      "price": 45.99,
+      "weight_kg": 0.2
+    },
+    {
+      "id": 4,
+      "name": "Brake Pads Honda Accord",
+      "sku": "BP-HA-2020",
+      "category": "brakes",
+      "brand": "Brembo",
+      "vehicle_year": 2020,
+      "vehicle_make": "Honda",
+      "price": 75.99,
+      "weight_kg": 2.1
+    },
+    {
+      "id": 5,
+      "name": "LED Headlight Bulb H7",
+      "sku": "LED-H7-6000K",
+      "category": "electrical",
+      "brand": "Philips",
+      "vehicle_year": 0,
+      "vehicle_make": "Universal",
+      "price": 39.99,
+      "weight_kg": 0.1
+    },
+    {
+      "id": 6,
+      "name": "Car Battery 12V 650CCA",
+      "sku": "BAT-12V-650",
+      "category": "electrical",
+      "brand": "Interstate",
+      "vehicle_year": 0,
+      "vehicle_make": "Universal",
+      "price": 129.99,
+      "weight_kg": 18.2
+    },
+    {
+      "id": 7,
+      "name": "Oil Filter BMW 3 Series",
+      "sku": "OF-B3S-2021",
+      "category": "filters",
+      "brand": "Mann",
+      "vehicle_year": 2021,
+      "vehicle_make": "BMW",
+      "price": 18.99,
+      "weight_kg": 0.4
+    },
+    {
+      "id": 8,
+      "name": "Wiper Blades 22 inch",
+      "sku": "WB-22IN-SILICONE",
+      "category": "maintenance",
+      "brand": "Rain-X",
+      "vehicle_year": 0,
+      "vehicle_make": "Universal",
+      "price": 25.99,
+      "weight_kg": 0.3
+    }
+  ]
+}

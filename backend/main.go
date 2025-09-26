@@ -3,6 +3,7 @@ package main
 import (
 	"autostore-sim/backend/handlers"
 	"autostore-sim/backend/models"
+	"autostore-sim/backend/services"
 	"fmt"
 	"time"
 
@@ -14,6 +15,22 @@ func main() {
 
 	// Create thread-safe warehouse
 	safeWarehouse := models.GetDefaultSafeWarehouse()
+
+	// Create and load products
+	productService := services.NewProductService()
+	if err := productService.LoadProductsFromFile("products.json"); err != nil {
+		fmt.Printf("Error loading products: %v\n", err)
+		return
+	}
+
+	// Place products randomly in warehouse
+	if err := productService.PlaceProductsInWarehouse(safeWarehouse); err != nil {
+		fmt.Printf("Error placing products: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Successfully loaded %d products into warehouse\n",
+		productService.GetProductCount())
 
 	// Create robots using pointers for goroutines
 	robots := []*models.Robot{
