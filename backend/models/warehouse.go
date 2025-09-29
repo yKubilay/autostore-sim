@@ -13,21 +13,21 @@ type Warehouse struct {
 
 // Safewarehouse creates thread-safe warehouse with collision detection
 type SafeWarehouse struct {
-	Width  int          `json:"width"`
-	Height int          `json:"height"`
-	Levels int          `json:"levels"`
-	Grid   [][][]bool   `json:"-"`
-	Mutex  sync.RWMutex `json:"-"`
+	Width  int               `json:"width"`
+	Height int               `json:"height"`
+	Levels int               `json:"levels"`
+	Grid   [][][]StorageCell `json:"-"`
+	Mutex  sync.RWMutex      `json:"-"`
 }
 
 // NewSafeWarehouse creates new thread-safe with the initialized grid
 func NewSafeWarehouse(width, height, levels int) *SafeWarehouse {
 	// Initilizating 3D grid
-	grid := make([][][]bool, width)
+	grid := make([][][]StorageCell, width)
 	for x := range grid {
-		grid[x] = make([][]bool, height)
+		grid[x] = make([][]StorageCell, height)
 		for y := range grid[x] {
-			grid[x][y] = make([]bool, levels)
+			grid[x][y] = make([]StorageCell, levels)
 		}
 	}
 
@@ -60,53 +60,28 @@ func GetDefaultWarehouse() Warehouse {
 	}
 }
 
-// IsPositionOccupied checks if a position is occupied using read lock
-func (sw *SafeWarehouse) IsPositionOccupied(x, y, z int) bool {
-	if !sw.IsValidPosition(x, y, z) {
-		return true // Out of bounds = "occupied"
-	}
-
-	sw.Mutex.RLock() // Read lock, multiple robots can check simultaneously
-	occupied := sw.Grid[x][y][z]
-	sw.Mutex.RUnlock()
-
-	return occupied
+// For robot collision detection - check if another robot is at position
+func (sw *SafeWarehouse) HasRobotAt(x, y, z int) bool {
+	// We'll track robot positions separately - for now, return false
+	return false
 }
 
-// SetRobotPosition safely sets and unsets a robot position using write lock
-func (sw *SafeWarehouse) SetRobotPosition(x, y, z int, occupied bool) bool {
+// For checking if cell has inventory (for picking operations)
+func (sw *SafeWarehouse) HasInventory(x, y, z int) bool {
 	if !sw.IsValidPosition(x, y, z) {
 		return false
 	}
 
-	sw.Mutex.Lock() // Write lock, only one robot can modify at a time
-	sw.Grid[x][y][z] = occupied
-	sw.Mutex.Unlock()
+	sw.Mutex.RLock()
+	hasStock := !sw.Grid[x][y][z].IsEmpty()
+	sw.Mutex.RUnlock()
 
-	return true
+	return hasStock
 }
 
-// TryMoveRoboty safely moves a robot from one position to another
-func (sw *SafeWarehouse) TryMoveRobot(fromX, fromY, fromZ, toX, toY, toZ int) bool {
-	if !sw.IsValidPosition(toX, toY, toZ) {
-		return false // Cannot move to invalid position
-	}
-
-	sw.Mutex.Lock()         // Write lock for entire operation
-	defer sw.Mutex.Unlock() // Automatically unlock when function exits
-
-	// Check if destintation is already occupied
-	if sw.Grid[toX][toY][toZ] {
-		return false // Destination occupied, cannot move
-	}
-
-	// Move robot, free old position and occupy new position
-	if sw.IsValidPosition(fromX, fromY, fromZ) {
-		sw.Grid[fromX][fromY][fromZ] = false // free old position
-	}
-	sw.Grid[toX][toY][toZ] = true // Occupy new position
-
-	return true // move successful
+// Robot movement - just check bounds (simplified for now)
+func (sw *SafeWarehouse) CanRobotMoveTo(x, y, z int) bool {
+	return sw.IsValidPosition(x, y, z)
 }
 
 // IsValidPosition checks if coordinates are within SafeWarehouse bounds

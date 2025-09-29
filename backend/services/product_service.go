@@ -100,8 +100,24 @@ func (ps *ProductService) PlaceProductsInWarehouse(warehouse *models.SafeWarehou
 
 		position := availablePositions[i]
 		product.Position = position
-		fmt.Printf("Placed %s at position (%d, %d, %d)\n",
-			product.Name, position.X, position.Y, position.Z)
+
+		// Generate realistic quantity based on product category
+		quantity := ps.getRealisticQuantity(product.Category)
+
+		// Create StorageCell with product and quantity
+		storageCell := models.StorageCell{
+			ProductID: product.ID,
+			Quantity:  quantity,
+			BinID:     fmt.Sprintf("BIN-%04d", i+1), // BIN-0001, BIN-0002, etc.
+		}
+
+		// Place the StorageCell in warehouse grid (thread-safe)
+		warehouse.Mutex.Lock()
+		warehouse.Grid[position.X][position.Y][position.Z] = storageCell
+		warehouse.Mutex.Unlock()
+
+		fmt.Printf("Placed %dx %s at position (%d, %d, %d) in %s\n",
+			quantity, product.Name, position.X, position.Y, position.Z, storageCell.BinID)
 	}
 
 	return nil
@@ -130,4 +146,24 @@ func (ps *ProductService) getStoragePositions(warehouse *models.SafeWarehouse) [
 // GetProductCount returns total number of products
 func (ps *ProductService) GetProductCount() int {
 	return len(ps.catalog.Products)
+}
+
+// getRealisticQuantity returns realistic quantities based on product category
+func (ps *ProductService) getRealisticQuantity(category models.Category) int {
+	switch category {
+	case models.CategoryEngine:
+		return rand.Intn(11) + 20 // 20-30 items (spark plugs, filters)
+	case models.CategoryBrakes:
+		return rand.Intn(6) + 10 // 10-15 items (heavier brake parts)
+	case models.CategoryElectrical:
+		return rand.Intn(16) + 25 // 25-40 items (light bulbs, fuses)
+	case models.CategoryFilters:
+		return rand.Intn(11) + 25 // 25-35 items (oil filters, air filters)
+	case models.CategoryLighting:
+		return rand.Intn(11) + 15 // 15-25 items (bulbs, assemblies)
+	case models.CategoryMaintenance:
+		return rand.Intn(11) + 20 // 20-30 items (wiper blades, fluids)
+	default:
+		return rand.Intn(11) + 15 // 15-25 items (fallback)
+	}
 }

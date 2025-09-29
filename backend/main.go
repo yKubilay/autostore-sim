@@ -39,11 +39,6 @@ func main() {
 		&models.Robot{ID: 3, X: 2, Y: 2, Z: 0, Status: "idle"},
 	}
 
-	// Set initial robot positions in warehouse grid
-	for _, robot := range robots {
-		safeWarehouse.SetRobotPosition(robot.X, robot.Y, robot.Z, true)
-	}
-
 	// Create done channel for graceful shutdown
 	done := make(chan bool)
 

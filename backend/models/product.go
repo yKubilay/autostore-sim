@@ -3,26 +3,26 @@ package models
 // Product represents an auto part stored in the warehouse
 type Product struct {
 	ID          int      `json:"id"`
-	Name        string   `json:"name"`        // "Air Filter Honda Civic"
-	SKU         string   `json:"sku"`         // "AF-HC-2023"
-	Category    Category `json:"category"`    // Engine, Brakes, etc.
-	Brand       string   `json:"brand"`       // "Bosch", "ACDelco", etc.
+	Name        string   `json:"name"`         // "Air Filter Honda Civic"
+	SKU         string   `json:"sku"`          // "AF-HC-2023"
+	Category    Category `json:"category"`     // Engine, Brakes, etc.
+	Brand       string   `json:"brand"`        // "Bosch", "ACDelco", etc.
 	VehicleYear int      `json:"vehicle_year"` // 2020, 2019, etc.
 	VehicleMake string   `json:"vehicle_make"` // "Honda", "Toyota", etc.
-	Price       float64  `json:"price"`       // 29.99
-	Weight      float64  `json:"weight_kg"`   // 0.5 kg
-	Position    Position `json:"position"`    // Where it's stored in warehouse
+	Price       float64  `json:"price"`        // 29.99
+	Weight      float64  `json:"weight_kg"`    // 0.5 kg
+	Position    Position `json:"position"`     // Where it's stored in warehouse
 }
 
 // Category represents product categories for auto parts
 type Category string
 
 const (
-	CategoryEngine     Category = "engine"
-	CategoryBrakes     Category = "brakes"
-	CategoryElectrical Category = "electrical"
-	CategoryFilters    Category = "filters"
-	CategoryLighting   Category = "lighting"
+	CategoryEngine      Category = "engine"
+	CategoryBrakes      Category = "brakes"
+	CategoryElectrical  Category = "electrical"
+	CategoryFilters     Category = "filters"
+	CategoryLighting    Category = "lighting"
 	CategoryMaintenance Category = "maintenance"
 )
 
@@ -84,4 +84,26 @@ func (pc *ProductCatalog) GetProductsByCategory(category Category) []*Product {
 		}
 	}
 	return products
+}
+
+// StorageCell reprensents a bin in the warehouse capable of carrying product inventory in it
+type StorageCell struct {
+	ProductID int    `json:"product_id"` // ID of product stored in this bin
+	Quantity  int    `json:"quantity"`   // Number of items in this bin
+	BinID     string `json:"bin_id"`     // Unique bin identifier
+}
+
+// IsEmpty checks if the the storage cell has no inventory
+func (sc StorageCell) IsEmpty() bool {
+	return sc.Quantity == 0
+}
+
+// HasProduct checks if cell contains a specific product
+func (sc StorageCell) HasProduct(productID int) bool {
+	return sc.ProductID == productID && sc.Quantity > 0
+}
+
+// CanFulfill checks if cell has enough quantity for an order
+func (sc StorageCell) CanFulfill(productID int, requestedQty int) bool {
+	return sc.ProductID == productID && sc.Quantity >= requestedQty
 }
