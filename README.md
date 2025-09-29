@@ -1,3 +1,8 @@
-AutoStore Warehouse Simulation
+# Autostore Simulator 🏭🤖
 
-A 3D warehouse automation simulation built with Go and React, showcasing concurrent robot coordination and real-time order processing.
+A Go-based simulator where virtual robots navigate a 3D grid in real time.  
+Built to explore **Go concurrency**, backend architecture, and scalable systems.  
+Frontend uses **React** with **shadcn/ui**.  
+Planning to expand with **Docker, GCP, and monitoring**.  
+
+> ⚠️ Work in progress
