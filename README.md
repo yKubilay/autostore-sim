@@ -1,8 +1,14 @@
 # Autostore Simulator 🏭🤖
 
-A Go-based simulator where virtual robots navigate a 3D grid in real time.  
-Built to explore **Go concurrency**, backend architecture, and scalable systems.  
-Frontend uses **React** with **shadcn/ui**.  
-Planning to expand with **Docker, GCP, and monitoring**.  
+A Go-based simulator where virtual robots navigate a 3D grid in real time.
 
-> ⚠️ Work in progress
+Started to **explore Go's concurrency** and build scalable backend systems. Planning to expand with **Docker, GCP, and monitoring**.
+
+The **frontend** uses **React** with **shadcn/ui** components to visualize the robots and grid.
+
+## Key Concepts Explored
+- Concurrency & parallelism in Go
+- Collision handling & route optimization
+- Real-time coordination between multiple agents
+
+> ⚠️ Work in progress, continuously learning and improving.
