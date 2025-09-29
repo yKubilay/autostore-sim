@@ -1,6 +1,6 @@
-# Autostore Simulator 🏭🤖
+# Autostore Warehouse Simulator 🏭🤖
 
-A Go-based simulator where virtual robots navigate a 3D grid in real time.
+A Go-based simulator where virtual robots navigate a 3D warehouse grid in real time.
 
 Started to **explore Go's concurrency** and build scalable backend systems. Planning to expand with **Docker, GCP, and monitoring**.
 
