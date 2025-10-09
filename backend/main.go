@@ -4,6 +4,7 @@ import (
 	"autostore-sim/backend/handlers"
 	"autostore-sim/backend/models"
 	"autostore-sim/backend/services"
+	ws "autostore-sim/backend/websocket"
 	"fmt"
 	"time"
 
@@ -34,9 +35,9 @@ func main() {
 
 	// Create robots using pointers for goroutines
 	robots := []*models.Robot{
-		&models.Robot{ID: 1, X: 0, Y: 0, Z: 0, Status: "idle"},
-		&models.Robot{ID: 2, X: 1, Y: 1, Z: 0, Status: "idle"},
-		&models.Robot{ID: 3, X: 2, Y: 2, Z: 0, Status: "idle"},
+		&models.Robot{ID: 1, X: 0, Y: 0, Z: 0, Status: "idle", BroadcastUpdate: nil}, // Will be set after hub creation
+		&models.Robot{ID: 2, X: 1, Y: 1, Z: 0, Status: "idle", BroadcastUpdate: nil},
+		&models.Robot{ID: 3, X: 2, Y: 2, Z: 0, Status: "idle", BroadcastUpdate: nil},
 	}
 
 	// Create done channel for graceful shutdown
@@ -72,8 +73,34 @@ func main() {
 			robot.ID, robot.X, robot.Y, robot.Z, robot.Status)
 	}
 
+	// Create OrderService
+	orderService := services.NewOrderService(productService, safeWarehouse)
+
+	// Create workstations (example positions at delivery ports)
+	workstations := []models.Workstation{
+		{ID: 1, X: 0, Y: 0, Status: "idle"},
+		{ID: 2, X: 7, Y: 0, Status: "idle"},
+	}
+
+	// Initialize WebSocket hub
+	hub := ws.NewHub()
+	go hub.Run()
+
+	// Set up broadcast callback for all robots
+	for _, robot := range robots {
+		robot.BroadcastUpdate = func(update models.RobotUpdate) {
+			handlers.BroadcastRobotUpdate(update)
+		}
+	}
+
+	// Initialize API handlers with all dependencies
+	handlers.InitializeServer(orderService, productService, safeWarehouse, robots, workstations, hub)
+
 	fmt.Println("Warehouse is running!")
 	fmt.Println("API available at http://localhost:8080")
+
+	// Start order processor in background
+	go startOrderProcessor()
 
 	// Start web server in a separate goroutine
 	go startWebServer()
@@ -95,6 +122,9 @@ func startOrderProcessor() {
 
 func startWebServer() {
 	r := gin.Default()
+
+	// WebSocket route
+	r.GET("/ws", handlers.HandleWebSocket)
 
 	// API routes
 	api := r.Group("/api")

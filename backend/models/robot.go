@@ -7,13 +7,14 @@ import (
 
 // Robot represents an AutoStore robot
 type Robot struct {
-	ID       int               `json:"id"`
-	X        int               `json:"x"`
-	Y        int               `json:"y"`
-	Z        int               `json:"z"`
-	Status   string            `json:"status"`
-	Commands chan RobotCommand `json:"-"`
-	Updates  chan RobotUpdate  `json:"-"`
+	ID              int               `json:"id"`
+	X               int               `json:"x"`
+	Y               int               `json:"y"`
+	Z               int               `json:"z"`
+	Status          string            `json:"status"`
+	Commands        chan RobotCommand `json:"-"`
+	Updates         chan RobotUpdate  `json:"-"`
+	BroadcastUpdate func(RobotUpdate) `json:"-"` // Callback for broadcasting updates
 }
 
 // RobotCommand represents a command sent to robot
@@ -113,6 +114,17 @@ func (r *Robot) processCommand(cmd RobotCommand, sw *SafeWarehouse) {
 			r.Status = "idle"
 
 			fmt.Printf("Robot %d arrived at (%d, %d, %d)\n", r.ID, r.X, r.Y, r.Z)
+
+			// Broadcast update via WebSocket
+			if r.BroadcastUpdate != nil {
+				r.BroadcastUpdate(RobotUpdate{
+					RobotID: r.ID,
+					X:       r.X,
+					Y:       r.Y,
+					Z:       r.Z,
+					Status:  r.Status,
+				})
+			}
 		} else {
 			r.Status = "error"
 			fmt.Printf("Robot %d: Move failed\n", r.ID)
@@ -139,6 +151,18 @@ func (r *Robot) processCommand(cmd RobotCommand, sw *SafeWarehouse) {
 		time.Sleep(2 * time.Second)
 		r.Status = "carrying"
 		fmt.Printf("Robot %d picked up item for order %d\n", r.ID, cmd.OrderID)
+
+		// Broadcast update via WebSocket
+		if r.BroadcastUpdate != nil {
+			r.BroadcastUpdate(RobotUpdate{
+				RobotID: r.ID,
+				X:       r.X,
+				Y:       r.Y,
+				Z:       r.Z,
+				Status:  r.Status,
+				OrderID: cmd.OrderID,
+			})
+		}
 	case "drop":
 		r.Status = "dropping"
 		fmt.Printf("Robot %d dropping item at (%d, %d, %d)\n", r.ID, cmd.X, cmd.Y, cmd.Z)
@@ -146,6 +170,18 @@ func (r *Robot) processCommand(cmd RobotCommand, sw *SafeWarehouse) {
 		time.Sleep(1500 * time.Millisecond)
 		r.Status = "idle"
 		fmt.Printf("Robot %d completed delivery for order %d\n", r.ID, cmd.OrderID)
+
+		// Broadcast update via WebSocket
+		if r.BroadcastUpdate != nil {
+			r.BroadcastUpdate(RobotUpdate{
+				RobotID: r.ID,
+				X:       r.X,
+				Y:       r.Y,
+				Z:       r.Z,
+				Status:  r.Status,
+				OrderID: cmd.OrderID,
+			})
+		}
 	}
 }
 

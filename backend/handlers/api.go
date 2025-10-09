@@ -3,61 +3,71 @@ package handlers
 import (
 	"autostore-sim/backend/models"
 	"autostore-sim/backend/services"
+	ws "autostore-sim/backend/websocket"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// WarehouseData holds all warehouse state data
-type WarehouseData struct {
-	Robots       []models.Robot       `json:"robots"`
-	Orders       []models.Order       `json:"orders"`
-	Workstations []models.Workstation `json:"workstations"`
+type Server struct {
+	OrderService   *services.OrderService
+	ProductService *services.ProductService
+	Warehouse      *models.SafeWarehouse
+	Robots         []*models.Robot
+	Workstations   []models.Workstation
+	WebSocketHub   *ws.Hub
 }
 
-// Global warehouse data (will be in a db later on)
-var warehouse WarehouseData
+var server Server
 
-// SetWarehouseData initliazises the warehouse data
-func SetWarehouseData(robots []models.Robot, orders []models.Order, workstations []models.Workstation) {
-	warehouse.Robots = robots
-	warehouse.Orders = orders
-	warehouse.Workstations = workstations
+// InitializeServer sets up all services for API handlers
+func InitializeServer(os *services.OrderService, ps *services.ProductService,
+	wh *models.SafeWarehouse, rbs []*models.Robot, wss []models.Workstation, hub *ws.Hub) {
+	server = Server{
+		OrderService:   os,
+		ProductService: ps,
+		Warehouse:      wh,
+		Robots:         rbs,
+		Workstations:   wss,
+		WebSocketHub:   hub,
+	}
 }
 
 // GetRobots returns all robots
 func GetRobots(c *gin.Context) {
-	c.JSON(http.StatusOK, warehouse.Robots)
+	c.JSON(http.StatusOK, server.Robots)
 }
 
 // GetOrders returns all orders
 func GetOrders(c *gin.Context) {
-	c.JSON(http.StatusOK, warehouse.Orders)
+	c.JSON(http.StatusOK, server.OrderService.GetActiveOrders())
 }
 
 // GetWorkstations returns all workstations
 func GetWorkstations(c *gin.Context) {
-	c.JSON(http.StatusOK, warehouse.Workstations)
+	c.JSON(http.StatusOK, server.Workstations)
 }
 
 // GetWarehouseStatus returns complete warehouse state
 func GetWarehouseStatus(c *gin.Context) {
-	c.JSON(http.StatusOK, warehouse)
+	c.JSON(http.StatusOK, server)
 }
 
 // GetWarehouseData returns current warehouse state for processing
-func GetWarehouseData() ([]models.Robot, []models.Order, []models.Workstation) {
-	return warehouse.Robots, warehouse.Orders, warehouse.Workstations
+func GetWarehouseData() ([]*models.Robot, []models.Order, []models.Workstation) {
+	return server.Robots, server.OrderService.GetActiveOrders(), server.Workstations
 }
 
 func ProcessWarehouseOrders() {
-	services.ProcessPendingOrders(warehouse.Robots, warehouse.Orders, warehouse.Workstations)
+	server.OrderService.ProcessPendingOrders(server.Robots)
 }
 
 // CreateOrderRequest represents the JSON structure for creating orders
 type CreateOrderRequest struct {
-	ItemX int `json:"item_x" binding:"required"`
-	ItemY int `json:"item_y" binding:"required"`
+	CustomerName string `json:"customer_name" binding:"required"`
+	ProductID    int    `json:"product_id" binding:"required"`
+	RequestedQty int    `json:"requested_qty" binding:"required,min=1"`
+	Priority     string `json:"priority"`
 }
 
 // CreateOrder creates a new order
@@ -68,23 +78,33 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Generate new order ID
-	newID := len(warehouse.Orders) + 1
-
-	// Create new order
-	newOrder := models.Order{
-		ID:            newID,
-		ItemX:         req.ItemX,
-		ItemY:         req.ItemY,
-		Status:        "pending",
-		AssignedRobot: 0,
+	// Default to normal priority if not specified
+	priority := models.PriorityNormal
+	if req.Priority != "" {
+		priority = models.Priority(req.Priority)
 	}
 
-	// Add to warehouse
-	warehouse.Orders = append(warehouse.Orders, newOrder)
+	// Create order via OrderService
+	order := server.OrderService.CreateOrder(req.CustomerName, req.ProductID, req.RequestedQty, priority)
+	if order == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create order"})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Order created successfully",
-		"order":   newOrder,
+		"order":   order,
 	})
+}
+
+// HandleWebSocket upgrades HTTP connection to WebSocket
+func HandleWebSocket(c *gin.Context) {
+	ws.ServeWs(server.WebSocketHub, c.Writer, c.Request)
+}
+
+// BroadcastRobotUpdate sends robot state updates to all connected WebSocket clients
+func BroadcastRobotUpdate(update models.RobotUpdate) {
+	if server.WebSocketHub != nil {
+		server.WebSocketHub.BroadcastRobotUpdate(update)
+	}
 }

@@ -85,8 +85,14 @@ func (os *OrderService) ProcessPendingOrders(robots []*models.Robot) {
 			continue
 		}
 
+		// Get actual order pointer from queue (not the loop copy)
+		actualOrder := os.orderQueue.GetOrderByID(order.ID)
+		if actualOrder == nil {
+			continue
+		}
+
 		// Assign robot and update order
-		os.assignRobotToOrder(availableRobot, &order, *productLocation)
+		os.assignRobotToOrder(availableRobot, actualOrder, *productLocation)
 	}
 }
 
@@ -157,4 +163,16 @@ func (os *OrderService) GetActiveOrders() []models.Order {
 		}
 	}
 	return active
+}
+
+// CreateOrder creates a new order and adds it to the queue
+func (os *OrderService) CreateOrder(customerName string, productID int, requestedQty int, priority models.Priority) *models.Order {
+	// Validate product exists
+	product := os.productService.GetProductByID(productID)
+	if product == nil {
+		return nil
+	}
+
+	// Add order through the OrderQueue (which handles ID generation and initialization)
+	return os.orderQueue.AddOrder(customerName, productID, requestedQty, priority)
 }
